@@ -56,6 +56,5 @@ export class AwsCvApiStack extends cdk.Stack {
       .addMethod("POST", new LambdaIntegration(uploadCvLambda));
 
 
-
-  }
-}
+  };
+};

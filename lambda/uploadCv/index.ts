@@ -7,34 +7,42 @@ export const getEnvVar = (input: string) => {
     if (typeof value === "string") {
         return value;
     }
-    throw new Error(`process.env.${input} was not set`)
-}
-
+    throw new Error(`process.env.${input} was not set`);
+};
 
 export const handler = async (event: any) => {
-    console.log("Data:");
+    console.log("Input event:");
     console.log(event);
-    const data = { body: event.body, key: "key.pdf" };
-    
 
 
-    const s3Upload = s3.upload({
-        Body: data.body,
-        Bucket: getEnvVar("BUCKET_NAME"),
-        Key: data.key,
-    });
+    try {
+        const s3Upload = s3.upload({
+            Body: event.body,
+            Bucket: getEnvVar("BUCKET_NAME"),
+            Key: `${Date.now().toString()}.pdf`,
+        });
 
-    const res = s3Upload.promise();
+        const res = await s3Upload.promise();
 
-    console.log("res:");
-    console.log(res)
-    return {
-        statusCode: 200,
-        body: JSON.stringify(res),
-        isBase64Encoded: false,
-        headers: {
-            'Access-Control-Allow-Method': "POST",
-            'Access-Control-Allow-Origin': "*"
-        }
-    };
+        return {
+            statusCode: 200,
+            body: JSON.stringify(res),
+            isBase64Encoded: false,
+            headers: {
+                'Access-Control-Allow-Method': "POST",
+                'Access-Control-Allow-Origin': "*"
+            }
+        };
+
+    } catch (error) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify(error),
+            isBase64Encoded: false,
+            headers: {
+                'Access-Control-Allow-Method': "POST",
+                'Access-Control-Allow-Origin': "*"
+            }
+        };
+    }
 };
