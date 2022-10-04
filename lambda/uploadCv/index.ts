@@ -16,18 +16,13 @@ export const handler = async (event: any) => {
 
 
     try {
-        const parsedBody = JSON.parse(event.body);
-        console.log(parsedBody);
+        const decodedFile = Buffer.from(event.body.replace(/^data:application\/pdf\/\w+;base64,/, ""), "base64");
         
-        const base64File = parsedBody.file;
-        const decodedFile = Buffer.from(base64File.replace(/^data:image\/\w+;base64,/, ""), "base64");
-        console.log(decodedFile);
-        
-
         const params = {
             Body: decodedFile,
             Bucket: getEnvVar("BUCKET_NAME"),
             Key: `${Date.now().toString()}.pdf`,
+            ContentType: "application/pdf",
         };
 
         const res = await s3.upload(params).promise();
