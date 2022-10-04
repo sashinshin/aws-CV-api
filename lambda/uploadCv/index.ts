@@ -16,13 +16,21 @@ export const handler = async (event: any) => {
 
 
     try {
-        const s3Upload = s3.upload({
-            Body: event.body,
+        const parsedBody = JSON.parse(event.body);
+        console.log(parsedBody);
+        
+        const base64File = parsedBody.file;
+        const decodedFile = Buffer.from(base64File.replace(/^data:image\/\w+;base64,/, ""), "base64");
+        console.log(decodedFile);
+        
+
+        const params = {
+            Body: decodedFile,
             Bucket: getEnvVar("BUCKET_NAME"),
             Key: `${Date.now().toString()}.pdf`,
-        });
+        };
 
-        const res = await s3Upload.promise();
+        const res = await s3.upload(params).promise();
 
         return {
             statusCode: 200,
