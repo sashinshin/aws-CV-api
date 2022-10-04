@@ -16,7 +16,12 @@ export const handler = async (event: any) => {
 
 
     try {
-        const decodedFile = Buffer.from(event.body.replace(/^data:application\/pdf\/\w+;base64,/, ""), "base64");
+        const file = event.body;
+        console.log(file);
+        
+        const regex = /^data:application\/pdf\/\w+;base64,/;
+        //file.replace(regex, "")
+        const decodedFile = Buffer.from(file, "base64");
         
         const params = {
             Body: decodedFile,
