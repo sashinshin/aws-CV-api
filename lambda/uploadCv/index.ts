@@ -19,16 +19,32 @@ export const handler = async (event: any) => {
         const file = event.body;
         console.log(file);
         
-        const regex = /^data:application\/pdf\/\w+;base64,/;
-        //file.replace(regex, "")
-        const decodedFile = Buffer.from(file, "base64");
+        let params: any = {}
+
+        if (event.fileFormat === "image") {
+            const regex = /^data:image\/\w+;base64,/;
         
-        const params = {
-            Body: decodedFile,
-            Bucket: getEnvVar("BUCKET_NAME"),
-            Key: `${Date.now().toString()}.pdf`,
-            ContentType: "application/pdf",
-        };
+            const decodedFile = Buffer.from(file.replace(regex, ""), "base64");
+            
+            params = {
+                Body: decodedFile,
+                Bucket: getEnvVar("BUCKET_NAME"),
+                Key: `${Date.now().toString()}.jpg`,
+                ContentType: "image/jpeg",
+            };
+        } else {
+
+            const regex = /^data:application\/pdf\/\w+;base64,/;
+            
+            const decodedFile = Buffer.from(file.replace(regex, ""), "base64");
+            
+            params = {
+                Body: decodedFile,
+                Bucket: getEnvVar("BUCKET_NAME"),
+                Key: `${Date.now().toString()}.pdf`,
+                ContentType: "application/pdf",
+            };
+        }
 
         const res = await s3.upload(params).promise();
 
