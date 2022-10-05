@@ -11,46 +11,24 @@ export const getEnvVar = (input: string) => {
 };
 
 export const handler = async (event: any) => {
-    console.log("Input event:");
-    console.log(event);
-
-
     try {
         const file = event.body;
-        console.log(file);
-        
-        let params: any = {}
+        const regex = /^data:application\/\w+;base64,/;
+        const decodedFile = Buffer.from(file.replace(regex, ""), "base64");
 
-        if (event.fileFormat === "image") {
-            const regex = /^data:image\/\w+;base64,/;
-        
-            const decodedFile = Buffer.from(file.replace(regex, ""), "base64");
-            
-            params = {
-                Body: decodedFile,
-                Bucket: getEnvVar("BUCKET_NAME"),
-                Key: `${Date.now().toString()}.jpg`,
-                ContentType: "image/jpeg",
-            };
-        } else {
+        const params = {
+            Body: decodedFile,
+            Bucket: getEnvVar("BUCKET_NAME"),
+            Key: `${Date.now().toString()}.pdf`,
+            ContentType: "application/pdf",
+        };
 
-            const regex = /^data:application\/pdf\/\w+;base64,/;
-            
-            const decodedFile = Buffer.from(file.replace(regex, ""), "base64");
-            
-            params = {
-                Body: decodedFile,
-                Bucket: getEnvVar("BUCKET_NAME"),
-                Key: `${Date.now().toString()}.pdf`,
-                ContentType: "application/pdf",
-            };
-        }
 
         const res = await s3.upload(params).promise();
 
         return {
             statusCode: 200,
-            body: JSON.stringify(res),
+            body: JSON.stringify({ url: res.Location }),
             isBase64Encoded: false,
             headers: {
                 'Access-Control-Allow-Method': "POST",
@@ -61,7 +39,7 @@ export const handler = async (event: any) => {
     } catch (error) {
         return {
             statusCode: 500,
-            body: JSON.stringify(error),
+            body: JSON.stringify({ message: "Something went wrong!" }),
             isBase64Encoded: false,
             headers: {
                 'Access-Control-Allow-Method': "POST",
