@@ -2,7 +2,7 @@ import { S3 } from "aws-sdk";
 
 const s3 = new S3();
 
-export const getEnvVar = (input: string) => {
+const getEnvVar = (input: string) => {
     const value = process.env[input];
     if (typeof value === "string") {
         return value;
@@ -12,14 +12,18 @@ export const getEnvVar = (input: string) => {
 
 export const handler = async (event: any) => {
     try {
+        console.log("Headers:");
+        console.log(event.headers);
         const file = event.body;
         const regex = /^data:application\/\w+;base64,/;
+        console.log("Regex test:");
+        console.log(regex.test(file));
         const decodedFile = Buffer.from(file.replace(regex, ""), "base64");
 
         const params = {
             Body: decodedFile,
             Bucket: getEnvVar("BUCKET_NAME"),
-            Key: `${Date.now().toString()}.pdf`,
+            Key: `cv/${Date.now().toString()}.pdf`,
             ContentType: "application/pdf",
         };
 
@@ -37,6 +41,7 @@ export const handler = async (event: any) => {
         };
 
     } catch (error) {
+        console.error(error);
         return {
             statusCode: 500,
             body: JSON.stringify({ message: "Something went wrong!" }),
